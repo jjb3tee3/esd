@@ -1,0 +1,16 @@
+{
+	"name": 	"MuseumServer",
+	"version":	"0.0.1",
+	"author":	"Jake <jake@rithium.com>",
+	"description":	"Server for the ESD module.",
+	"dependencies": {
+		"socket.io-client": "latest",
+		"express": "latest",
+		"jade": "latest"
+	},
+	"repository": {
+		"type":		"git",
+		"url":		"https://github.com/jjb3tee3/ESD-Server.git"
+	},
+	"license":	"MIT"
+}
