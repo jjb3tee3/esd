@@ -15,9 +15,8 @@ var P_TYPE_AUTH  = "0";
 var P_TYPE_TRACK = "1";
 
 /** Authentication Fields */
-var P_AUTH_PIN   = 2;
-var P_AUTH_CODE  = 2;
-var P_AUTH_GROUP = 3;
+var P_AUTH_PIN 	= 2;
+var P_AUTH_CODE = 2;
 
 /** Track Fields */
 var P_TRACK_ID 	 = 2;
@@ -55,30 +54,21 @@ exports.handle = function(packet, socket) {
 			response = handleTrackPacket(packet, socket);
 			break; 
 	}
+	console.log("Sending: " + response);
 }
 
-/** Determines whether a PIN is currently valid or not */
 function handleAuthPacket(packet, socket) {
-	if(packet[P_AUTH_GROUP] == 1) {
-		socket.emit('newGroupMember', {pin: packet[P_AUTH_PIN], state: 0});
-		return;
-	}
-
 	connection.query("SELECT user_state FROM users WHERE user_pin_code = \'"+packet[P_AUTH_PIN]+"\'", function(err, rows) {
 		if(err) throw err;
 		
-		if(rows[0] != null) {
+		if(rows[0] != null)
 			socket.write("0%1%"+rows[0].user_state);
-			socket.emit('newUser', {pin: packet[P_AUTH_PIN], state: rows[0].user_state});
-		}
-		else { 
-			/** user does not exist */
+		else 
 			socket.write("0%1%-1");
-		}
+
 	});
 }
 
-/** Returns the requested track details if it exists */
 function handleTrackPacket(packet, socket) {
 	connection.query("SELECT audio_file_link, audio_file_name, audio_file_length FROM audio_file WHERE audio_file_id = \'"+packet[P_TRACK_ID]+"\'", function(err, rows) {
 		if(err) throw err;
