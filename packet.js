@@ -68,29 +68,29 @@ function handleAuthPacket(packet, socket) {
 		if(err) throw err;
 		
 		if(rows[0] != null) {
-			socket.write("0%1%"+rows[0].user_state);
+			socket.send("0%1%"+rows[0].user_state);
 			socket.emit('newUser', {pin: packet[P_AUTH_PIN], state: rows[0].user_state});
 		}
 		else { 
 			/** user does not exist */
-			socket.write("0%1%-1");
+			socket.send("0%1%-1");
 		}
 	});
 }
 
 /** Returns the requested track details if it exists */
 function handleTrackPacket(packet, socket) {
-	connection.query("SELECT audio_file_link, audio_file_name, audio_file_length FROM audio_file WHERE audio_file_id = \'"+packet[P_TRACK_ID]+"\'", function(err, rows) {
+	connection.query("SELECT audio_file_link, audio_file_length FROM audio_file WHERE audio_file_id = \'"+packet[P_TRACK_ID]+"\'", function(err, rows) {
 		if(err) throw err;
 
 		if(rows[0] != null) {
-			socket.write("1%1%"+rows[0].audio_file_link+
+			socket.send("1%1%"+rows[0].audio_file_link+
 					"%"+rows[0].audio_file_name+
 					"%"+rows[0].audio_file_length);
 			console.log("got it");
 		}
 		else {
-			socket.write("no.");
+			socket.send("no.");
 			console.log("not got it");
 		}
 	});

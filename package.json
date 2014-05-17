@@ -4,7 +4,7 @@
 	"author":	"Jake <jake@rithium.com>",
 	"description":	"Server for the ESD module.",
 	"dependencies": {
-		"socket.io-client": "latest",
+		"socket.io": "latest",
 		"express": "latest",
 		"jade": "latest"
 	},

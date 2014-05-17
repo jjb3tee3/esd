@@ -1,12 +1,91 @@
 var packetHandler = require("./packet.js");
 var net = require('net');
+var WebSocketServer = require('ws').Server;
+var wss = new WebSocketServer({ip: '0.0.0.0', port: 11012});
+
+//var io = require('socket.io').listen(11012, '0.0.0.0');
+//io.set('destroy upgrade', false);
+
 var port = 11012;
 
 var clients = [];
 var i = 0;
 
+wss.on('connection', function(socket) {
+socket.name = socket.remoteAddress + ":" + socket.remotePort;
+	console.log("Client: " + socket.remoteAddress + " connected.");
+
+	/** Sends packet data to be parsed and actioned */
+	socket.on('message', function(data) {
+		var packet = data.toString().split("%");
+		
+		if(packet != null) {
+			var result = packetHandler.handle(packet, socket);
+			//socket.write(result);
+		}
+	});
+
+	/** Creates a new user and adds them to the list */
+	socket.on('newUser', function(data) {
+		var newUserEntry = {
+				pin: data.pin,
+				user_state: data.state,
+				socket: socket,
+				members: [],
+				};
+
+		clients.push(newUserEntry);
+
+		/** Testing group functionality */		
+		//if(i++ > 0)
+		//	clients[0].members.push(newUserEntry);
+		/***/
+
+		print_clients();
+		
+		console.log("Adding new user ("+data.state+") with pin: "+data.pin);
+	});
+
+	/** Adds a new member to an existing user's group */
+	socket.on('newGroupMember', function(data) {
+		var newUserEntry = {
+                                pin: data.pin,
+                                user_state: data.state,
+                                socket: socket,
+                                members: [],
+                                };
+
+		clients.forEach(function(client) {
+			if(client.pin == data.pin)
+				client.members.push(newUserEntry);
+		});
+
+		print_clients();
+	});
+
+	/** Broadcast group messages */
+	socket.on('sendGroup', function(data) {
+		clients.forEach(function(client) {
+			if(client.pin == data.pin) {
+				members.forEach(function(member) {
+					socket.send(data.message);
+				});
+			}
+		});
+
+		print_clients();
+	});
+
+	/** Removes a user when the device disconnects */
+	socket.on('end', function() {
+		/* uncomment this during actual use, removed during testing */
+		//clients.splice(clients.indexOf(socket), 1);
+		console.log("Client: " + socket.remoteAddress + " disconnected.");
+	});
+});
+
 /** Create the TCP server and register callbacks */
-var server = net.createServer(function(socket) {
+var tcpserver = net.createServer(function(socket) {
 	socket.name = socket.remoteAddress + ":" + socket.remotePort;
 	console.log("Client: " + socket.remoteAddress + " connected.");
 
@@ -93,6 +172,5 @@ function print_clients() {
                 });
 }
 
-server.listen(port, '0.0.0.0');
-
+//tcpserver.listen(port, '0.0.0.0');
 console.log("Server running on port: "+port);
